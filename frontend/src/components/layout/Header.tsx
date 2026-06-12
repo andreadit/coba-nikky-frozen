@@ -17,7 +17,7 @@ export function Header({
   onMenuClick,
 }: HeaderProps) {
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-10">
+    <header className="h-16 bg-white/95 backdrop-blur border-b border-gray-100 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-10">
       <button
         onClick={onMenuClick}
         className="lg:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors"

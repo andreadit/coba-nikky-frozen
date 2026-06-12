@@ -1,6 +1,6 @@
-import { useState } from "react"
-
-import { USERS } from "../../data/users"
+import { useEffect, useState } from "react"
+import { getUsers } from "../../services/userService"
+import type { AppUser } from "../../types/user"
 
 import {
 
@@ -15,7 +15,31 @@ export default function UsersPage() {
   const [search, setSearch] =
     useState("")
 
-  const filtered = USERS.filter(user =>
+  const [users, setUsers] =
+    useState<AppUser[]>([])
+
+  const [loading, setLoading] =
+    useState(true)
+
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        setLoading(true)
+        setUsers(await getUsers())
+      } catch (error: any) {
+        alert(
+          error.response?.data?.message ||
+            "Gagal memuat pengguna"
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadUsers()
+  }, [])
+
+  const filtered = users.filter(user =>
 
     user.name
       .toLowerCase()
@@ -24,7 +48,7 @@ export default function UsersPage() {
   )
 
   const activeUsers =
-    USERS.filter(
+    users.filter(
       u => u.status === "active"
     ).length
 
@@ -32,7 +56,7 @@ export default function UsersPage() {
     <div className="p-4 lg:p-6 space-y-5">
 
       <UserStats
-        total={USERS.length}
+        total={users.length}
         active={activeUsers}
       />
 
@@ -44,6 +68,12 @@ export default function UsersPage() {
       <UserTable
         users={filtered}
       />
+
+      {loading && (
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 text-sm text-gray-500">
+          Memuat data pengguna...
+        </div>
+      )}
 
     </div>
   )

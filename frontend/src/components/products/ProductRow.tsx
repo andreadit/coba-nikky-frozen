@@ -1,4 +1,5 @@
 import { Edit2, Trash2 } from "lucide-react"
+import ProductVisual from "./ProductVisual"
 
 import { Badge } from "../ui";
 import ExpiryBadge from "./ExpiryBadge"
@@ -12,11 +13,13 @@ import { cn } from "../../lib/cn"
 interface Props {
   product: Product
   onEdit: (product: Product) => void
+  onDelete: (product: Product) => void
 }
 
 export default function ProductRow({
   product,
   onEdit,
+  onDelete,
 }: Props) {
   const days = daysFromNow(product.expiry)
 
@@ -31,9 +34,7 @@ export default function ProductRow({
     >
       <td className="px-4 py-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg">
-            {product.emoji}
-          </div>
+          <ProductVisual category={product.category} />
 
           <p className="font-semibold text-gray-900">
             {product.name}
@@ -96,7 +97,10 @@ export default function ProductRow({
             <Edit2 className="w-3.5 h-3.5" />
           </button>
 
-          <button className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+          <button
+            onClick={() => onDelete(product)}
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+          >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
 

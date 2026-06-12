@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+
 import {
 
   FinanceStats,
@@ -7,26 +9,46 @@ import {
 } from "../../components/finance"
 
 import {
-
-  FINANCE_TRANSACTIONS,
-  FINANCE_CHART
-
-} from "../../data/finance"
+  getFinanceData,
+  type FinanceChartItem,
+  type FinanceTransaction
+} from "../../services/financeService"
 
 export function FinancePage() {
 
-  const revenue =
-    FINANCE_TRANSACTIONS
-      .filter(t => t.type === "income")
-      .reduce((s, t) => s + t.amount, 0)
+  const [revenue, setRevenue] = useState(0)
+  const [expense, setExpense] = useState(0)
+  const [profit, setProfit] = useState(0)
+  const [transactions, setTransactions] =
+    useState<FinanceTransaction[]>([])
+  const [chart, setChart] =
+    useState<FinanceChartItem[]>([])
+  const [loading, setLoading] =
+    useState(true)
 
-  const expense =
-    FINANCE_TRANSACTIONS
-      .filter(t => t.type === "expense")
-      .reduce((s, t) => s + t.amount, 0)
+  useEffect(() => {
+    async function loadFinance() {
+      try {
+        setLoading(true)
+        const data = await getFinanceData()
 
-  const profit =
-    revenue - expense
+        setRevenue(data.revenue)
+        setExpense(data.expense)
+        setProfit(data.profit)
+        setTransactions(data.transactions)
+        setChart(data.chart)
+      } catch (error: any) {
+        alert(
+          error.response?.data?.message ||
+            "Gagal memuat keuangan"
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFinance()
+  }, [])
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -40,13 +62,19 @@ export function FinancePage() {
 
       {/* CHART */}
       <FinanceChart
-        data={FINANCE_CHART}
+        data={chart}
       />
 
       {/* TABLE */}
       <FinanceTransactionTable
-        transactions={FINANCE_TRANSACTIONS}
+        transactions={transactions}
       />
+
+      {loading && (
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 text-sm text-gray-500">
+          Memuat data keuangan...
+        </div>
+      )}
 
     </div>
   )

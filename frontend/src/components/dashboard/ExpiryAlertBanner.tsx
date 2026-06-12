@@ -19,12 +19,11 @@ export function ExpiryAlertBanner({
         <span className="font-bold">
           {total} produk
         </span>{" "}
-        akan kadaluarsa dalam 7 hari ke depan —
-        segera tindak lanjuti.
+        akan kadaluarsa dalam 7 hari ke depan - segera tindak lanjuti.
       </p>
 
       <button className="text-amber-600 text-xs font-bold hover:underline whitespace-nowrap flex-shrink-0">
-        Lihat Detail →
+        Lihat Detail
       </button>
     </div>
   );

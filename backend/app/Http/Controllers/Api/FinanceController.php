@@ -10,7 +10,7 @@ class FinanceController extends Controller
 {
     public function index()
     {
-        $revenue = Transaction::where('status', 'completed')->sum('total');
+        $revenue = Transaction::whereIn('status', ['paid', 'completed'])->sum('total');
         $expense = Expense::sum('amount');
 
         return response()->json([
@@ -18,7 +18,8 @@ class FinanceController extends Controller
             'expense' => $expense,
             'profit' => $revenue - $expense,
             'transactions' => Transaction::with(['branch', 'user'])
-                ->latest('transaction_at')
+                ->whereIn('status', ['paid', 'completed'])
+                ->latest('created_at')
                 ->limit(20)
                 ->get(),
             'expenses' => Expense::latest('expense_date')

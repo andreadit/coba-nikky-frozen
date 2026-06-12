@@ -23,6 +23,12 @@ export function BranchPerformanceCard({
       </h3>
 
       <div className="space-y-4">
+        {branches.length === 0 && (
+          <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm text-gray-400">
+            Belum ada data transaksi cabang.
+          </div>
+        )}
+
         {branches.map((branch) => (
           <div key={branch.branch}>
             <div className="flex items-center justify-between mb-2">

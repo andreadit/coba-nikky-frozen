@@ -6,38 +6,53 @@ import {
 } from "lucide-react";
 
 import { StatCard } from "../ui";
+import { fmt } from "../../utils/currency";
 
 interface DashboardStatsProps {
+  todayRevenue: number;
+  todayTransactionCount: number;
+  activeBranchCount: number;
   expiringCount: number;
   lowStockCount: number;
 }
 
 export function DashboardStats({
+  todayRevenue,
+  todayTransactionCount,
+  activeBranchCount,
   expiringCount,
   lowStockCount,
 }: DashboardStatsProps) {
+  const todayLabel =
+    new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
         title="Revenue Hari Ini"
-        value="Rp 4,25 Jt"
-        sub="Sabtu, 15 Jan 2024"
+        value={fmt(todayRevenue)}
+        sub={todayLabel}
         icon={<DollarSign className="w-5 h-5" />}
         color="blue"
         trend={{
-          label: "+15%",
+          label: "Realtime",
           up: true,
         }}
       />
 
       <StatCard
         title="Transaksi Hari Ini"
-        value="85"
-        sub="dari 3 cabang"
+        value={String(todayTransactionCount)}
+        sub={`dari ${activeBranchCount} cabang aktif`}
         icon={<ShoppingCart className="w-5 h-5" />}
         color="cyan"
         trend={{
-          label: "+8%",
+          label: "Hari ini",
           up: true,
         }}
       />
@@ -45,7 +60,7 @@ export function DashboardStats({
       <StatCard
         title="Produk Kadaluarsa"
         value={String(expiringCount)}
-        sub="≤ 7 hari ke depan"
+        sub="<= 7 hari ke depan"
         icon={<AlertTriangle className="w-5 h-5" />}
         color="amber"
         trend={{
@@ -57,7 +72,7 @@ export function DashboardStats({
       <StatCard
         title="Stok Menipis"
         value={String(lowStockCount)}
-        sub="< 10 unit tersisa"
+        sub="<= stok minimum"
         icon={<Package2 className="w-5 h-5" />}
         color="red"
         trend={{

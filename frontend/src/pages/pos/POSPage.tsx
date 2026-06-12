@@ -1,8 +1,9 @@
 // src/pages/pos/POSPage.tsx
 
-import { useState } from "react"
-
-import { PRODUCTS } from "../../data/products"
+import { useEffect, useState } from "react"
+import { getProducts } from "../../services/productService"
+import { createTransaction } from "../../services/transactionService"
+import { createMidtransPayment } from "../../services/paymentService"
 
 import {
   ProductGrid,
@@ -28,12 +29,41 @@ export default function POSPage() {
   const [cart, setCart] =
     useState<CartItem[]>([])
 
+  const [products, setProducts] =
+    useState<Product[]>([])
+
+  const [loading, setLoading] =
+    useState(true)
+
+  async function loadProducts() {
+    try {
+      setLoading(true)
+      setProducts(await getProducts())
+    } catch (error: any) {
+      alert(
+        error.response?.data?.message ||
+          "Gagal memuat produk POS"
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
+
+  const [paymentMethod, setPaymentMethod] =
+    useState<"cash" | "midtrans">("cash")
+
+  const [checkoutLoading, setCheckoutLoading] =
+    useState(false)
+
   const categories = [
     "Semua",
-
     ...Array.from(
       new Set(
-        PRODUCTS.map(
+        products.map(
           p => p.category
         )
       )
@@ -41,7 +71,7 @@ export default function POSPage() {
   ]
 
   const filteredProducts =
-    PRODUCTS.filter(product =>
+    products.filter(product =>
 
       (category === "Semua" ||
         product.category === category)
@@ -62,6 +92,22 @@ export default function POSPage() {
     )
 
   function addToCart(product: Product) {
+    if (product.stock <= 0) {
+      alert("Stok produk ini habis.")
+      return
+    }
+
+    const cartBranchId = cart[0]?.branchId
+    if (
+      cartBranchId &&
+      product.branchId &&
+      cartBranchId !== product.branchId
+    ) {
+      alert(
+        "Satu transaksi hanya bisa berisi produk dari cabang yang sama."
+      )
+      return
+    }
 
     const existing =
       cart.find(
@@ -69,6 +115,10 @@ export default function POSPage() {
       )
 
     if (existing) {
+      if (existing.qty >= product.stock) {
+        alert("Jumlah di keranjang melebihi stok tersedia.")
+        return
+      }
 
       setCart(prev =>
         prev.map(item =>
@@ -102,7 +152,9 @@ export default function POSPage() {
       prev.map(item =>
 
         item.id === id
-          ? {
+          ? item.qty >= item.stock
+            ? item
+            : {
               ...item,
               qty: item.qty + 1
             }
@@ -156,6 +208,76 @@ export default function POSPage() {
       0
     )
 
+  async function checkout() {
+    if (cart.length === 0) {
+      return
+    }
+
+    const savedUser = localStorage.getItem("user")
+    const user = savedUser ? JSON.parse(savedUser) : null
+    const checkoutBranchId =
+      cart[0]?.branchId ??
+      user?.branch_id ??
+      user?.branch?.id ??
+      1
+
+    const hasMixedBranches = cart.some(
+      item =>
+        item.branchId &&
+        item.branchId !== checkoutBranchId
+    )
+
+    if (hasMixedBranches) {
+      alert(
+        "Keranjang berisi produk dari cabang berbeda. Pisahkan transaksi per cabang."
+      )
+      return
+    }
+
+    try {
+      setCheckoutLoading(true)
+
+      const transaction =
+        await createTransaction({
+          branch_id: checkoutBranchId,
+          paid_amount:
+            paymentMethod === "cash"
+              ? subtotal
+              : undefined,
+          payment_method: paymentMethod,
+          items: cart.map(item => ({
+            product_id: item.id,
+            qty: item.qty
+          }))
+        })
+
+      if (paymentMethod === "midtrans") {
+        const payment =
+          await createMidtransPayment(
+            transaction.id
+          )
+
+        window.location.href =
+          payment.redirect_url
+        return
+      }
+
+      alert(
+        `Transaksi ${transaction.invoice_no} berhasil.`
+      )
+      setCart([])
+      await loadProducts()
+    } catch (error: any) {
+      alert(
+        error.response?.data?.message ||
+          error.response?.data?.errors?.items?.[0] ||
+          "Checkout gagal"
+      )
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
+
   return (
     <div className="h-full flex overflow-hidden bg-gray-50">
 
@@ -181,6 +303,12 @@ export default function POSPage() {
           onAdd={addToCart}
         />
 
+        {loading && (
+          <div className="bg-white border border-gray-100 rounded-3xl p-5 text-sm text-gray-500">
+            Memuat produk kasir...
+          </div>
+        )}
+
       </div>
 
       {/* RIGHT SIDE */}
@@ -188,10 +316,14 @@ export default function POSPage() {
         items={cart}
 
         subtotal={subtotal}
+        paymentMethod={paymentMethod}
+        checkoutLoading={checkoutLoading}
 
         onIncrease={increaseQty}
         onDecrease={decreaseQty}
         onRemove={removeItem}
+        onPaymentMethodChange={setPaymentMethod}
+        onCheckout={checkout}
       />
 
     </div>

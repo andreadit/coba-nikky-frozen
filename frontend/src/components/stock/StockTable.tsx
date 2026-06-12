@@ -1,6 +1,7 @@
 import { fmt } from "../../utils/currency"
 
 import StockStatusBadge from "./StockStatusBadge"
+import ProductVisual from "../products/ProductVisual"
 
 import type { Product } from "../../types/product"
 
@@ -59,11 +60,7 @@ export default function StockTable({
 
                   <div className="flex items-center gap-3">
 
-                    <div className="text-3xl">
-
-                      {product.emoji}
-
-                    </div>
+                    <ProductVisual category={product.category} />
 
                     <div>
 

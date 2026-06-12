@@ -1,6 +1,6 @@
-import { useState } from "react"
-
-import { PRODUCTS } from "../../data/products"
+import { useEffect, useState } from "react"
+import { getProducts } from "../../services/productService"
+import type { Product } from "../../types/product"
 
 import {
   StockStats,
@@ -16,8 +16,32 @@ export default function StockPage() {
   const [status, setStatus] =
     useState("Semua")
 
+  const [products, setProducts] =
+    useState<Product[]>([])
+
+  const [loading, setLoading] =
+    useState(true)
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setLoading(true)
+        setProducts(await getProducts())
+      } catch (error: any) {
+        alert(
+          error.response?.data?.message ||
+            "Gagal memuat stok"
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProducts()
+  }, [])
+
   const filtered =
-    PRODUCTS.filter(product => {
+    products.filter(product => {
 
       const matchesSearch =
 
@@ -33,7 +57,8 @@ export default function StockPage() {
 
         (
           status === "Menipis" &&
-          product.stock <= 10
+          product.stock <= (product.minimumStock ?? 10) &&
+          product.stock > 0
         )
 
         ||
@@ -47,7 +72,7 @@ export default function StockPage() {
 
         (
           status === "Aman" &&
-          product.stock > 10
+          product.stock > (product.minimumStock ?? 10)
         )
 
       return (
@@ -57,12 +82,14 @@ export default function StockPage() {
     })
 
   const lowStockCount =
-    PRODUCTS.filter(
-      p => p.stock <= 10
+    products.filter(
+      p =>
+        p.stock <= (p.minimumStock ?? 10) &&
+        p.stock > 0
     ).length
 
   const emptyStockCount =
-    PRODUCTS.filter(
+    products.filter(
       p => p.stock <= 0
     ).length
 
@@ -88,6 +115,12 @@ export default function StockPage() {
       <StockTable
         products={filtered}
       />
+
+      {loading && (
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 text-sm text-gray-500">
+          Memuat data stok...
+        </div>
+      )}
 
     </div>
   )

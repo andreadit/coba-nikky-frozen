@@ -19,6 +19,7 @@ interface SidebarProps {
     initials: string;
     role: string;
   };
+  onLogout: () => void;
 }
 
 export function Sidebar({
@@ -28,6 +29,7 @@ export function Sidebar({
   isOpen,
   onClose,
   currentUser,
+  onLogout,
 }: SidebarProps) {
   const visibleItems = NAV_ITEMS.filter((item) =>
     item.roles.includes(role)
@@ -55,7 +57,7 @@ export function Sidebar({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto scrollbar-hide">
           {visibleItems.map((item) => {
             const active = currentPage === item.id;
 
@@ -124,7 +126,10 @@ export function Sidebar({
               </p>
             </div>
 
-            <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+            <button
+              onClick={onLogout}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+            >
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>

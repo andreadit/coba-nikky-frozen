@@ -1,9 +1,10 @@
 import { cn } from "../../lib/cn";
+import ProductVisual from "../products/ProductVisual";
 
 interface Product {
   id: number;
   name: string;
-  emoji: string;
+  category?: string;
   branch: string;
   expiry: string;
 }
@@ -30,6 +31,12 @@ export function ExpiryProductList({
       </div>
 
       <div className="space-y-2.5">
+        {products.length === 0 && (
+          <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-medium text-emerald-700">
+            Semua produk aman dari kadaluarsa dekat.
+          </div>
+        )}
+
         {products.map((product) => {
           const days = daysUntilExpiry(
             product.expiry
@@ -49,9 +56,10 @@ export function ExpiryProductList({
                   : "bg-amber-50 border-amber-200"
               )}
             >
-              <span className="text-xl">
-                {product.emoji}
-              </span>
+              <ProductVisual
+                category={product.category ?? ""}
+                size="sm"
+              />
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">

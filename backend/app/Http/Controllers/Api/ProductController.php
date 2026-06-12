@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
@@ -34,9 +36,35 @@ class ProductController extends Controller
             'expiry_date' => ['nullable', 'date'],
             'image' => ['nullable', 'string', 'max:255'],
             'is_active' => ['boolean'],
+            'branch_id' => ['required', 'exists:branches,id'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'minimum_stock' => ['required', 'integer', 'min:0'],
+            'maximum_stock' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        return Product::create($data)->load(['category', 'inventories.branch']);
+        return DB::transaction(function () use ($data) {
+            $product = Product::create(collect($data)->only([
+                'category_id',
+                'sku',
+                'name',
+                'unit',
+                'price',
+                'cost',
+                'expiry_date',
+                'image',
+                'is_active',
+            ])->all());
+
+            Inventory::create([
+                'product_id' => $product->id,
+                'branch_id' => $data['branch_id'],
+                'stock' => $data['stock'],
+                'minimum_stock' => $data['minimum_stock'],
+                'maximum_stock' => $data['maximum_stock'] ?? null,
+            ]);
+
+            return $product->load(['category', 'inventories.branch']);
+        });
     }
 
     /**
@@ -64,9 +92,37 @@ class ProductController extends Controller
             'expiry_date' => ['nullable', 'date'],
             'image' => ['nullable', 'string', 'max:255'],
             'is_active' => ['boolean'],
+            'branch_id' => ['required', 'exists:branches,id'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'minimum_stock' => ['required', 'integer', 'min:0'],
+            'maximum_stock' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $product->update($data);
+        DB::transaction(function () use ($product, $data) {
+            $product->update(collect($data)->only([
+                'category_id',
+                'sku',
+                'name',
+                'unit',
+                'price',
+                'cost',
+                'expiry_date',
+                'image',
+                'is_active',
+            ])->all());
+
+            Inventory::updateOrCreate(
+                [
+                    'product_id' => $product->id,
+                    'branch_id' => $data['branch_id'],
+                ],
+                [
+                    'stock' => $data['stock'],
+                    'minimum_stock' => $data['minimum_stock'],
+                    'maximum_stock' => $data['maximum_stock'] ?? null,
+                ]
+            );
+        });
 
         return $product->load(['category', 'inventories.branch']);
     }

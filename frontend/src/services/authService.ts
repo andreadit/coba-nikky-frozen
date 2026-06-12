@@ -1,13 +1,28 @@
-import axios from "axios";
+import { api } from "./api";
 
-const API_URL = "http://127.0.0.1:8000/api";
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  branch_id?: number | null;
+  branch?: {
+    id: number;
+    name: string;
+  } | null;
+}
 
-export const login = async (
+export interface LoginResponse {
+  user: AuthUser;
+  token: string;
+}
+
+export async function login(
   email: string,
   password: string
-) => {
-  const response = await axios.post(
-    `${API_URL}/login`,
+) {
+  const response = await api.post<LoginResponse>(
+    "/login",
     {
       email,
       password,
@@ -15,4 +30,14 @@ export const login = async (
   );
 
   return response.data;
-};
+}
+
+export async function logout() {
+  await api.post("/logout");
+}
+
+export async function getCurrentUser() {
+  const response = await api.get<AuthUser>("/me");
+
+  return response.data;
+}

@@ -1,4 +1,5 @@
 import { daysFromNow } from "../../utils/date"
+import ProductVisual from "../products/ProductVisual"
 
 import { fmt } from "../../utils/currency"
 
@@ -52,9 +53,11 @@ export default function ExpiryTable({
             {products.map(product => {
 
               const days =
-                daysFromNow(
-                  product.expiry
-                )
+                product.expiry
+                  ? daysFromNow(
+                      product.expiry
+                    )
+                  : null
 
               return (
                 <tr
@@ -67,11 +70,7 @@ export default function ExpiryTable({
 
                     <div className="flex items-center gap-3">
 
-                      <div className="text-3xl">
-
-                        {product.emoji}
-
-                      </div>
+                      <ProductVisual category={product.category} />
 
                       <div>
 
@@ -121,15 +120,17 @@ export default function ExpiryTable({
 
                       <p className="font-medium text-gray-700">
 
-                        {product.expiry}
+                  {product.expiry || "-"}
 
                       </p>
 
                       <p className="text-xs text-gray-400 mt-0.5">
 
-                        {days < 0
-                          ? `${Math.abs(days)} hari lalu`
-                          : `${days} hari lagi`
+                        {days == null
+                          ? "Tanggal belum diatur"
+                          : days < 0
+                            ? `${Math.abs(days)} hari lalu`
+                            : `${days} hari lagi`
                         }
 
                       </p>
@@ -142,7 +143,7 @@ export default function ExpiryTable({
                   <td className="px-4 py-3">
 
                     <ExpiryStatusBadge
-                      days={days}
+                      days={days ?? 999}
                     />
 
                   </td>

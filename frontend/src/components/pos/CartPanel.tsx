@@ -6,18 +6,28 @@ interface Props {
   items: CartItemType[]
 
   subtotal: number
+  paymentMethod: "cash" | "midtrans"
+  checkoutLoading: boolean
 
   onIncrease: (id: number) => void
   onDecrease: (id: number) => void
   onRemove: (id: number) => void
+  onPaymentMethodChange: (
+    method: "cash" | "midtrans"
+  ) => void
+  onCheckout: () => void
 }
 
 export default function CartPanel({
   items,
   subtotal,
+  paymentMethod,
+  checkoutLoading,
   onIncrease,
   onDecrease,
-  onRemove
+  onRemove,
+  onPaymentMethodChange,
+  onCheckout
 }: Props) {
 
   return (
@@ -68,10 +78,43 @@ export default function CartPanel({
 
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
+            Metode pembayaran
+          </label>
+
+          <select
+            value={paymentMethod}
+            onChange={(event) =>
+              onPaymentMethodChange(
+                event.target.value as
+                  | "cash"
+                  | "midtrans"
+              )
+            }
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          >
+            <option value="cash">
+              Tunai
+            </option>
+            <option value="midtrans">
+              Midtrans
+            </option>
+          </select>
+        </div>
+
         <button
-          className="w-full py-3 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors"
+          type="button"
+          onClick={onCheckout}
+          disabled={
+            checkoutLoading ||
+            items.length === 0
+          }
+          className="w-full py-3 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
         >
-          Checkout
+          {checkoutLoading
+            ? "Memproses..."
+            : "Checkout"}
         </button>
 
       </div>

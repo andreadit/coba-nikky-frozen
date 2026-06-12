@@ -19,7 +19,7 @@ class TransactionController extends Controller
     public function index()
     {
         return Transaction::with(['branch', 'user', 'items.product'])
-            ->latest('transaction_at')
+            ->latest('created_at')
             ->get();
     }
 
@@ -30,7 +30,7 @@ class TransactionController extends Controller
     {
         $data = $request->validate([
             'branch_id' => ['required', 'exists:branches,id'],
-            'paid_amount' => ['required', 'integer', 'min:0'],
+            'paid_amount' => ['nullable', 'integer', 'min:0'],
             'discount' => ['nullable', 'integer', 'min:0'],
             'tax' => ['nullable', 'integer', 'min:0'],
             'payment_method' => ['nullable', 'string', 'max:255'],
@@ -54,8 +54,12 @@ class TransactionController extends Controller
             $discount = $data['discount'] ?? 0;
             $tax = $data['tax'] ?? 0;
             $total = max(0, $subtotal - $discount + $tax);
+            $paymentMethod = $data['payment_method'] ?? 'cash';
+            $paidAmount = $paymentMethod === 'midtrans'
+                ? 0
+                : ($data['paid_amount'] ?? 0);
 
-            if ($data['paid_amount'] < $total) {
+            if ($paymentMethod !== 'midtrans' && $paidAmount < $total) {
                 throw ValidationException::withMessages([
                     'paid_amount' => ['Nominal bayar kurang dari total transaksi.'],
                 ]);
@@ -69,11 +73,10 @@ class TransactionController extends Controller
                 'discount' => $discount,
                 'tax' => $tax,
                 'total' => $total,
-                'paid_amount' => $data['paid_amount'],
-                'change_amount' => $data['paid_amount'] - $total,
-                'payment_method' => $data['payment_method'] ?? 'cash',
-                'status' => 'completed',
-                'transaction_at' => now(),
+                'paid' => $paidAmount,
+                'change' => $paymentMethod === 'midtrans' ? 0 : $paidAmount - $total,
+                'payment_method' => $paymentMethod,
+                'status' => $paymentMethod === 'midtrans' ? 'pending' : 'paid',
             ]);
 
             foreach ($items as $item) {
@@ -96,8 +99,8 @@ class TransactionController extends Controller
                     'product_id' => $product->id,
                     'qty' => $item['qty'],
                     'price' => $product->price,
-                    'cost' => $product->cost,
-                    'subtotal' => $product->price * $item['qty'],
+                    'discount' => 0,
+                    'total' => $product->price * $item['qty'],
                 ]);
 
                 $inventory->update([

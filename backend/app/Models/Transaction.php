@@ -14,17 +14,16 @@ class Transaction extends Model
         'discount',
         'tax',
         'total',
-        'paid_amount',
-        'change_amount',
+        'paid',
+        'change',
         'payment_method',
         'status',
-        'transaction_at',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'transaction_at' => 'datetime',
         ];
     }
 

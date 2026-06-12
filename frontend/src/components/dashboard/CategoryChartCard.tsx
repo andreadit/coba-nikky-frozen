@@ -27,36 +27,42 @@ export function CategoryChartCard({
         Kategori Produk
       </h3>
 
-      <ResponsiveContainer
-        width="100%"
-        height={150}
-      >
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={45}
-            outerRadius={65}
-            dataKey="value"
-            strokeWidth={0}
-          >
-            {data.map((item, index) => (
-              <Cell
-                key={index}
-                fill={item.color}
-              />
-            ))}
-          </Pie>
+      {data.length > 0 ? (
+        <ResponsiveContainer
+          width="100%"
+          height={150}
+        >
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={45}
+              outerRadius={65}
+              dataKey="value"
+              strokeWidth={0}
+            >
+              {data.map((item, index) => (
+                <Cell
+                  key={index}
+                  fill={item.color}
+                />
+              ))}
+            </Pie>
 
-          <Tooltip
-            formatter={(value) => [
-              `${value}%`,
-              "",
-            ]}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+            <Tooltip
+              formatter={(value) => [
+                `${value}%`,
+                "",
+              ]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="h-[150px] rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-sm text-gray-400">
+          Belum ada produk.
+        </div>
+      )}
 
       <div className="mt-3 space-y-2">
         {data.map((item) => (

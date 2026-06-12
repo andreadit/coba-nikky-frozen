@@ -5,11 +5,13 @@ import type { Product } from "../../types"
 interface Props {
   products: Product[]
   onEdit: (product: Product) => void
+  onDelete: (product: Product) => void
 }
 
 export default function ProductTable({
   products,
-  onEdit
+  onEdit,
+  onDelete
 }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -50,6 +52,7 @@ export default function ProductTable({
                 key={product.id}
                 product={product}
                 onEdit={onEdit}
+                onDelete={onDelete}
               />
             ))}
 
